@@ -1,0 +1,92 @@
+services:
+  neo4j:
+    image: neo4j:5-community
+    ports:
+      - "${NEO4J_HTTP_PORT}:7474"
+      - "${NEO4J_BOLT_PORT}:7687"
+    environment:
+      NEO4J_AUTH: "${NEO4J_USER}/${NEO4J_PASSWORD}"
+      NEO4J_PLUGINS: '${NEO4J_PLUGINS_JSON}'
+      NEO4J_dbms_default__database: "${NEO4J_DATABASE}"
+    volumes:
+      - neo4j_data:/data
+
+  ollama:
+    image: ollama/ollama:latest
+    volumes:
+      - ollama:/root/.ollama
+    healthcheck:
+      test: ["CMD", "bash", "-lc", "curl -sf http://localhost:${OLLAMA_PORT}/api/tags >/dev/null || exit 1"]
+      interval: 10s
+      timeout: 3s
+      retries: 10
+
+  litellm:
+    image: ghcr.io/berriai/litellm:main
+    depends_on: [ollama]
+    ports:
+      - "${LITELLM_PORT}:${LITELLM_PORT}"
+    command: [
+      "--host","0.0.0.0",
+      "--port","${LITELLM_PORT}",
+      "--model","${MODEL_NAME}",
+      "--embed_model","${EMBEDDER_MODEL_NAME}",
+      "--ollama_base_url","http://ollama:${OLLAMA_PORT}"
+    ]
+    # Puedes inyectar OPENAI_API_KEY aquí si quisieras reusar, pero Graphiti lo usa directo
+
+  graphiti:
+    image: zepai/graphiti:latest
+    depends_on:
+      - neo4j
+      - litellm
+    ports:
+      - "${GRAPHITI_PORT}:8000"
+    environment:
+      # Neo4j
+      NEO4J_URI: "bolt://neo4j:${NEO4J_BOLT_PORT}"
+      NEO4J_USER: "${NEO4J_USER}"
+      NEO4J_PASSWORD: "${NEO4J_PASSWORD}"
+      NEO4J_DATABASE: "${NEO4J_DATABASE}"
+      # Graphiti → proxy OpenAI-compatible (LiteLLM)
+      OPENAI_API_KEY: "${OPENAI_API_KEY}"
+      OPENAI_BASE_URL: "${OPENAI_BASE_URL}"
+      MODEL_NAME: "${MODEL_NAME}"
+      SMALL_MODEL_NAME: "${SMALL_MODEL_NAME}"
+      EMBEDDER_MODEL_NAME: "${EMBEDDER_MODEL_NAME}"
+
+  backend:
+    build: ./backend/
+    container_name: backend
+    depends_on:
+      - graphiti
+    ports:
+      - "${BACKEND_PORT}:9000"
+    environment:
+      GRAPHITI_BASE_URL: "${GRAPHITI_BASE_URL}"
+      CORS_ALLOWED_ORIGINS: "${CORS_ALLOWED_ORIGINS}"
+      NEO4J_URI: "${NEO4J_URI}"
+      NEO4J_USER: "${NEO4J_USER}"
+      NEO4J_PASSWORD: "${NEO4J_PASSWORD}"
+      NEO4J_DATABASE: "${NEO4J_DATABASE}"
+    volumes:
+      - ./backend:/app
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        VITE_API_URL: "${VITE_API_URL}"
+        VITE_GRAPHITI_URL: "${VITE_GRAPHITI_URL}"
+    container_name: frontend
+    depends_on:
+      - backend
+    ports:
+      - "${FRONTEND_PORT}:5173"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+
+volumes:
+  neo4j_data:
+  ollama:
