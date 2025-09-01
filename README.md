@@ -107,3 +107,6 @@ Usaría más recursos y dividiría el trabajo: poner varios servidores de base d
 ### ¿Qué otras fuentes de datos ayudarían?
 
 Eventos de canales (teléfono/SMS/WhatsApp/email), pasarelas de pago, CRM (tickets, preferencias, zona horaria), transcripciones para sentimiento/motivos.
+
+## Video
+![Prueba Técnica](https://youtu.be/nmbKDGE1xyE)
