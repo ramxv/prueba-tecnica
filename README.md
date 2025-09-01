@@ -109,4 +109,4 @@ Usaría más recursos y dividiría el trabajo: poner varios servidores de base d
 Eventos de canales (teléfono/SMS/WhatsApp/email), pasarelas de pago, CRM (tickets, preferencias, zona horaria), transcripciones para sentimiento/motivos.
 
 ## Video
-![Prueba Técnica](https://youtu.be/nmbKDGE1xyE)
+[![Prueba Técnica](https://img.youtube.com/vi/nmbKDGE1xyE/hqdefault.jpg)](https://youtu.be/nmbKDGE1xyE "Haz clic para ver el video")
