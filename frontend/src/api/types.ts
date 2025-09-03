@@ -53,8 +53,8 @@ export type AgenteEfectividadResumen = {
 };
 
 export type AgenteEfectividadPorHorario = {
-  dia_semana: number;   // 0..6, asumiendo (ajusta según tus datos)
-  hora_del_dia: number; // 0..23
+  dia_semana: number;
+  hora_del_dia: number;
   llamadas: number;
   tasa_contacto: number;
   tasa_exito: number;

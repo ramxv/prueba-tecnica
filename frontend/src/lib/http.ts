@@ -2,7 +2,7 @@
 // src/lib/http.ts (o donde tengas este archivo)
 import axios, { AxiosError, type AxiosInstance, type InternalAxiosRequestConfig } from "axios";
 
-const baseURL = (import.meta.env.VITE_API_URL as string | undefined) ?? "";
+const baseURL = (import.meta.env.VITE_API_URL as string | undefined)?.replace(/\/+$/, "") ?? "http://localhost:9000";
 
 export const http: AxiosInstance = axios.create({
   baseURL,
