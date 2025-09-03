@@ -139,7 +139,9 @@ def promesas_incumplidas(
          reduce(s=0.0, x IN collect(coalesce(pay.monto,0.0)) | s + x) AS monto_sum,
          reduce(mx=0.0, x IN collect(coalesce(pay.monto,0.0)) | CASE WHEN x>mx THEN x ELSE mx END) AS monto_max,
          LIMITE, modo
-    WITH c, p, monto_sum, monto_max, LIMITE,
+    WITH c, p, LIMITE, modo,
+         monto_sum, monto_max,
+         CASE WHEN modo = 'estricto' THEN monto_max ELSE monto_sum END AS monto_en_ventana,
          CASE
            WHEN modo = 'estricto' THEN (monto_max >= coalesce(p.monto_prometido, 0.0))
            ELSE (monto_sum >= coalesce(p.monto_prometido, 0.0))
@@ -150,7 +152,7 @@ def promesas_incumplidas(
       coalesce(p.id, elementId(p)) AS promesa_id,
       p.fecha_promesa AS fecha_promesa,
       p.monto_prometido AS monto_prometido,
-      CASE WHEN modo = 'estricto' THEN monto_max ELSE monto_sum END AS monto_pagado_en_ventana,
+      monto_en_ventana AS monto_pagado_en_ventana,
       duration.between(datetime(p.fecha_promesa), LIMITE).days AS dias_vencida
     ORDER BY dias_vencida DESC, fecha_promesa ASC
     """

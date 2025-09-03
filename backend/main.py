@@ -10,10 +10,12 @@ app.include_router(analytics_router)
 origins = ["http://localhost:5173"]
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
+    allow_origins=[o.strip() for o in origins if o.strip()],
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["*"],  # GET, POST, OPTIONS, etc.
+    allow_headers=["*"],  # <-- necesario por X-Request-Id
+    expose_headers=["*"],
+    max_age=3600,
 )
 
 
